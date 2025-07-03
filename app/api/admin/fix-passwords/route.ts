@@ -81,12 +81,12 @@ export async function POST(request: NextRequest) {
 // Utility endpoint to list users for debugging
 export async function GET(request: NextRequest) {
   // This endpoint should only be accessible in development environment
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { success: false, message: "This endpoint is not available in production" },
-      { status: 403 }
-    );
-  }
+ // if (process.env.NODE_ENV === "production") {
+    //return NextResponse.json(
+      //{ success: false, message: "This endpoint is not available in production" },
+      //{ status: 403 }
+   // );
+  //}
 
   try {
     const url = new URL(request.url);
