@@ -35,7 +35,7 @@ const publicApiPaths = [
 
 // Use env variable with fallback for JWT secret
 const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secure-jwt-secret-for-ims-application-123";
+  process.env.JWT_SECRET || "i-m-s-2-0-2-5";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

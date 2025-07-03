@@ -2,11 +2,11 @@ import mysql from "mysql2/promise";
 
 // Create a connection pool
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || "localhost",
-  port: parseInt(process.env.MYSQL_PORT || "3306"),
-  user: process.env.MYSQL_USER || "root",
-  password: process.env.MYSQL_PASSWORD || "",
-  database: process.env.MYSQL_DATABASE || "ims2025",
+  host: process.env.DB_HOST || "db-9f47c544-517c-4ac3-9bef-32b7fa5b92fa.ap-southeast-1.public.db.laravel.cloud",
+  port: parseInt(process.env.DB_PORT || "3306"),
+  user: process.env.DB_USERNAME || "kbdjmhn1td0hwux4",
+  password: process.env.DB_PASSWORD || "TKh0TMeM6azI2VIaB9NM",
+  database: process.env.DB_DATABASE || "main",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

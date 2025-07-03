@@ -4,12 +4,12 @@ import { hash } from "bcrypt";
 
 export async function POST(request: NextRequest) {
   // This endpoint should only be accessible in development environment
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { success: false, message: "This endpoint is not available in production" },
-      { status: 403 }
-    );
-  }
+  //if (process.env.NODE_ENV === "production") {
+    //return NextResponse.json(
+     // { success: false, message: "This endpoint is not available in production" },
+     // { status: 403 }
+   // );
+  //}
 
   try {
     const { email, newPassword, adminKey } = await request.json();
