@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     
     // 1. Fix user passwords for test accounts
     try {
-      const resetPassword = await hash("password123", 10);
+      const resetPassword = await hash("hindavi123", 10);
       const userResult = await query(
         `UPDATE users SET 
           password = ?, 
