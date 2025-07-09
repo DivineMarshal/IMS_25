@@ -23,6 +23,7 @@ import { NavHelper } from "./nav-helper";
 import { useAuth } from "@/app/providers/auth-provider";
 import Link from "next/link";
 import { EnhancedReportPreview } from "@/app/components/ui/enhanced-report-preview";
+import { useRouter } from "next/navigation";
 
 interface DepartmentStat {
   Department_ID: number;
@@ -86,6 +87,9 @@ export default function DashboardPage() {
     filename?: string;
     reportType?: string;
   }>({});
+  const [biodataLoading, setBiodataLoading] = useState(false);
+  const [biodataReportData, setBiodataReportData] = useState<{ pdfBase64?: string; filename?: string }>({});
+  const [biodataPreviewOpen, setBiodataPreviewOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -247,6 +251,28 @@ export default function DashboardPage() {
     }
   };
 
+  const handleGenerateBiodata = async () => {
+    if (!user || !user.username) return;
+    try {
+      setBiodataLoading(true);
+      try {
+        await fetch(`/api/faculty/biodata/setup`);
+      } catch (setupError) {
+        console.warn("Setup endpoint error:", setupError);
+      }
+      const response = await fetch(`/api/faculty/biodata?facultyId=${user.username}`);
+      if (!response.ok) throw new Error(`Failed to generate biodata: ${response.status}`);
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || "Failed to generate biodata");
+      setBiodataReportData({ pdfBase64: result.data.pdfBase64, filename: result.data.filename });
+      setBiodataPreviewOpen(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "An error occurred while generating biodata");
+    } finally {
+      setBiodataLoading(false);
+    }
+  };
+
   // You can create a loading state if needed
   if (loading || authLoading) {
     return (
@@ -400,6 +426,13 @@ export default function DashboardPage() {
           .toUpperCase()}${reportData.reportType?.slice(1)} Report`}
         reportType={reportData.reportType}
       />
+      <EnhancedReportPreview
+        isOpen={biodataPreviewOpen}
+        onClose={() => setBiodataPreviewOpen(false)}
+        pdfBase64={biodataReportData.pdfBase64}
+        filename={biodataReportData.filename}
+        title="Faculty CV/Biodata"
+      />
       <div className="space-y-8">
         {/* Page title with report generation options */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -434,6 +467,18 @@ export default function DashboardPage() {
               <DocumentArrowDownIcon className="h-5 w-5" />
               {generatingReport ? "Generating..." : "Generate Report"}
             </button>
+            {/* Generate CV/Biodata button for faculty only */}
+            {user?.role === "faculty" && (
+              <button
+                onClick={handleGenerateBiodata}
+                disabled={biodataLoading}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors disabled:bg-gray-200"
+                style={{ minWidth: '180px' }}
+              >
+                <DocumentArrowDownIcon className="h-5 w-5" />
+                {biodataLoading ? "Generating..." : "Generate CV/Biodata"}
+              </button>
+            )}
           </div>
         </div>
 

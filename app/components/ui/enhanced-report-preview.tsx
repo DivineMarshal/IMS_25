@@ -252,23 +252,7 @@ export function EnhancedReportPreview({
         <DialogHeader className="p-4 pb-0">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFullscreen}
-                title={fullscreenMode ? "Exit fullscreen" : "Fullscreen"}
-              >
-                <Expand className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleOpenInNewTab}
-                title="Open in new tab"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center ml-auto">
               <DialogClose asChild>
                 <Button variant="ghost" size="icon">
                   <X className="h-4 w-4" />

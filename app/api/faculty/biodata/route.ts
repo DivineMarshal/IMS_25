@@ -312,13 +312,13 @@ async function getContributions(facultyId: string): Promise<Contribution[]> {
     SELECT 
       Contribution_ID as contribution_id,
       Contribution_Type as contribution_type,
-      Description as contribution_title,
+      Contribution_Type as contribution_title, -- Use type as title
       Contribution_Date as contribution_date,
       YEAR(Contribution_Date) as year,
       Recognized_By as journal_conference,
       Award_Received as award,
       '' as impact_factor,
-      Remarks as description
+      Description as description -- Use Description as main text
     FROM 
       faculty_contributions
     WHERE 
@@ -744,38 +744,33 @@ async function generateBiodata(
       doc.setFont("helvetica", "normal");
 
       for (const item of items) {
-        const year =
-          item.year || new Date(item.contribution_date).getFullYear();
-
-        // Format the contribution entry
-        const contributionText = `${item.contribution_title} (${year})${
-          item.journal_conference ? `, ${item.journal_conference}` : ""
-        }`;
-
-        const splitText = doc.splitTextToSize(contributionText, 180);
+        // Heading: Contribution_Type (bold)
+        const heading = item.contribution_type || "Contribution";
+        const splitHeading = doc.splitTextToSize(heading, 180);
 
         // Check if we need a new page for this item
         if (
-          yPos + splitText.length * 5 + 8 >
+          yPos + splitHeading.length * 5 + 8 >
           doc.internal.pageSize.height - 15
         ) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.text(splitText, 14, yPos);
-        yPos += splitText.length * 5;
+        // Only print the heading once (bold)
+        doc.setFont("helvetica", "bold");
+        
+       
 
+        // Only print the description (normal)
         if (item.description) {
-          const descText = doc.splitTextToSize(
-            `Description: ${item.description}`,
-            170
-          );
-          doc.text(descText, 24, yPos);
+          doc.setFont("helvetica", "normal");
+          const descText = doc.splitTextToSize(item.description, 170);
+          doc.text(descText, 14, yPos);
           yPos += descText.length * 5;
         }
 
-        yPos += 6;
+        yPos += 10;
       }
 
       yPos += 6;

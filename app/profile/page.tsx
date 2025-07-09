@@ -297,21 +297,6 @@ export default function ProfilePage() {
                 </p>
               )}{" "}
               <div className="w-full border-t border-gray-200 pt-4 mt-4 space-y-2">
-                {(profile?.role === "faculty" || profile?.role === "hod") && (
-                  <Button
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={handleGenerateBiodata}
-                    disabled={biodataLoading}
-                    variant="outline"
-                  >
-                    {biodataLoading ? (
-                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <DocumentArrowDownIcon className="h-5 w-5" />
-                    )}
-                    {biodataLoading ? "Generating..." : "Generate CV/Biodata"}
-                  </Button>
-                )}
                 <Button
                   className="w-full"
                   variant="outline"
@@ -570,18 +555,6 @@ export default function ProfilePage() {
                           : "Comprehensive Report"}
                       </Button>
                     )}
-                    {(profile?.role === "faculty" ||
-                      profile?.role === "hod") && (
-                      <Button
-                        onClick={handleGenerateBiodata}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                        disabled={biodataLoading}
-                      >
-                        <DocumentArrowDownIcon className="h-4 w-4" />
-                        {biodataLoading ? "Generating..." : "Basic Biodata"}
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -611,7 +584,8 @@ export default function ProfilePage() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-600">
-                        {achievement.description}
+                        {/* Remove year in parentheses at end of description */}
+                        {achievement.description.replace(/\s*\(\d{4}\)$/, "")}
                       </p>
                     </div>
                   ))}
