@@ -35,11 +35,17 @@ interface DepartmentData {
   } | null;
 }
 
-export default function EditDepartmentPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditDepartmentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const { user } = useAuth();
   const { id } = use(params);
-  const [departmentData, setDepartmentData] = useState<DepartmentData | null>(null);
+  const [departmentData, setDepartmentData] = useState<DepartmentData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -47,10 +53,22 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
   const canEdit =
     user &&
     (user.role === "admin" ||
-      (user.role === "department" && user.departmentId === Number(id)));
+      ((user.role === "hod" || user.role === "department") &&
+        user.departmentId === Number(id)));
 
   // Debug log for access control (after canEdit is defined)
-  console.log("[EditDepartmentPage] user:", user, "user.departmentId:", user?.departmentId, "id:", id, "typeof id:", typeof id, "canEdit:", canEdit);
+  console.log(
+    "[EditDepartmentPage] user:",
+    user,
+    "user.departmentId:",
+    user?.departmentId,
+    "id:",
+    id,
+    "typeof id:",
+    typeof id,
+    "canEdit:",
+    canEdit
+  );
 
   // Guard: Wait for user to be loaded
   if (user === undefined) {
@@ -79,7 +97,9 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
         setDepartmentData(data);
       } catch (error) {
         console.error("Error fetching department data:", error);
-        setError(error instanceof Error ? error.message : "Unknown error occurred");
+        setError(
+          error instanceof Error ? error.message : "Unknown error occurred"
+        );
         toast.error("Failed to load department data");
       } finally {
         setLoading(false);
@@ -100,12 +120,16 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Edit Department</h1>
-              <Button variant="outline" onClick={handleClose} className="flex items-center">
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex items-center"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to List
               </Button>
             </div>
-            
+
             <Card className="p-6 animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
               <div className="space-y-4">
@@ -127,17 +151,21 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Edit Department</h1>
-              <Button variant="outline" onClick={handleClose} className="flex items-center">
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex items-center"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to List
               </Button>
             </div>
-            
+
             <div className="bg-red-50 border border-red-200 p-6 rounded-lg">
               <h2 className="text-xl font-semibold text-red-600 mb-2">Error</h2>
               <p className="text-red-600">{error}</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4 text-red-600 border-red-300 hover:bg-red-50"
                 onClick={handleClose}
               >
@@ -156,7 +184,9 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
       <MainLayout>
         <div className="container mx-auto py-8 px-4">
           <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-          <p className="mt-4">You do not have permission to edit this department.</p>
+          <p className="mt-4">
+            You do not have permission to edit this department.
+          </p>
         </div>
       </MainLayout>
     );
@@ -169,14 +199,20 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Edit Department</h1>
-              <Button variant="outline" onClick={handleClose} className="flex items-center">
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex items-center"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to List
               </Button>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-lg">
-              <p className="text-red-500">Department not found or data is incomplete</p>
+              <p className="text-red-500">
+                Department not found or data is incomplete
+              </p>
               <Button variant="outline" onClick={handleClose} className="mt-4">
                 Return to Department List
               </Button>
@@ -192,14 +228,20 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Edit Department: {departmentData.Department_Name}</h1>
-            <Button variant="outline" onClick={handleClose} className="flex items-center">
+            <h1 className="text-2xl font-bold">
+              Edit Department: {departmentData.Department_Name}
+            </h1>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              className="flex items-center"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to List
             </Button>
           </div>
-          
-          <DepartmentForm 
+
+          <DepartmentForm
             onClose={handleClose}
             initialData={departmentData}
             isEditing={true}
@@ -209,4 +251,4 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ id: s
       </div>
     </MainLayout>
   );
-} 
+}

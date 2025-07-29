@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { OkPacket } from "mysql2";
+import { departments } from "@/app/lib/department-mappings";
 
 export async function GET(request: Request) {
   const diagnosticMode = request.url.includes("diagnostic=true");
@@ -289,49 +290,59 @@ export async function POST(request: Request) {
       );
     }
 
+    // Find the department configuration
+    const department = departments.find((dept) => dept.name === F_dept);
+    if (!department) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid department selected",
+        },
+        { status: 400 }
+      );
+    }
+
     try {
-      // Insert into faculty table
+      // Get the next faculty ID for this department
+      // Find the highest existing faculty ID with this department prefix
+      const existingFacultyIds = (await query(
+        `SELECT F_id FROM faculty WHERE F_id LIKE ? ORDER BY F_id DESC LIMIT 1`,
+        [`${department.facultyIdPrefix}%`]
+      )) as any[];
+
+      let nextId: number;
+      if (existingFacultyIds.length > 0) {
+        // Extract the numeric part after the prefix and increment
+        const lastId = existingFacultyIds[0].F_id;
+        const numericPart = parseInt(
+          lastId
+            .toString()
+            .substring(department.facultyIdPrefix.toString().length)
+        );
+        nextId = parseInt(
+          `${department.facultyIdPrefix}${(numericPart + 1)
+            .toString()
+            .padStart(2, "0")}`
+        );
+      } else {
+        // First faculty for this department, start with prefix + 01
+        nextId = parseInt(`${department.facultyIdPrefix}01`);
+      }
+
+      // Insert into faculty table with the generated ID
       const result = (await query(
-        `
-        INSERT INTO faculty (F_name, F_dept)
-        VALUES (?, ?)
-      `,
-        [F_name, F_dept]
+        `INSERT INTO faculty (F_id, F_name, F_dept) VALUES (?, ?, ?)`,
+        [nextId, F_name, F_dept]
       )) as OkPacket;
 
       return NextResponse.json({
         success: true,
-        F_id: result.insertId,
+        F_id: nextId,
+        message: `Faculty added successfully with ID: ${nextId}`,
       });
     } catch (insertError) {
-      // If the error is related to auto_increment not set up, try to fix it
-      if (
-        insertError instanceof Error &&
-        insertError.message.includes("ER_NO_DEFAULT_FOR_FIELD") &&
-        insertError.message.includes("F_id")
-      ) {
-        // First alter the table to add AUTO_INCREMENT to F_id
-        await query(
-          "ALTER TABLE faculty MODIFY F_id bigint NOT NULL AUTO_INCREMENT"
-        );
-
-        // Then retry the insert
-        const result = (await query(
-          `
-          INSERT INTO faculty (F_name, F_dept)
-          VALUES (?, ?)
-        `,
-          [F_name, F_dept]
-        )) as OkPacket;
-
-        return NextResponse.json({
-          success: true,
-          F_id: result.insertId,
-        });
-      } else {
-        // If it's another kind of error, rethrow it
-        throw insertError;
-      }
+      console.error("Error inserting faculty:", insertError);
+      throw insertError;
     }
   } catch (error) {
     console.error("Error adding faculty:", error);

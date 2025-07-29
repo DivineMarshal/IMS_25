@@ -50,14 +50,20 @@ export default function DepartmentsPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [filteredDepartments, setFilteredDepartments] = useState<Department[]>([]);
+  const [filteredDepartments, setFilteredDepartments] = useState<Department[]>(
+    []
+  );
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [establishmentYearFilter, setEstablishmentYearFilter] = useState<string>("");
+  const [establishmentYearFilter, setEstablishmentYearFilter] =
+    useState<string>("");
   const [sortOrder, setSortOrder] = useState<string>("name");
   const [userRole, setUserRole] = useState<string | null>(null);
   const prevDeptId = useRef<number | undefined>(undefined);
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const searchParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
   const cb = searchParams?.get("cb");
 
   // Calculate visibleDepartments with safe defaults
@@ -70,9 +76,12 @@ export default function DepartmentsPage() {
   if (
     user &&
     user.role === "department" &&
-    (visibleDepartments.length !== 1 || Number(sessionStorage.getItem("deptPageReloadCount") || "0") < 2)
+    (visibleDepartments.length !== 1 ||
+      Number(sessionStorage.getItem("deptPageReloadCount") || "0") < 2)
   ) {
-    const reloadCount = Number(sessionStorage.getItem("deptPageReloadCount") || "0");
+    const reloadCount = Number(
+      sessionStorage.getItem("deptPageReloadCount") || "0"
+    );
     if (reloadCount < 2) {
       sessionStorage.setItem("deptPageReloadCount", String(reloadCount + 1));
       window.location.replace(`/departments?cb=${Date.now()}`);
@@ -141,7 +150,9 @@ export default function DepartmentsPage() {
   // Force up to 2 hard reloads for department users, always show loading spinner before reload
   useEffect(() => {
     if (user && (user.role === "department" || user.role === "admin")) {
-      const reloadCount = Number(sessionStorage.getItem("deptPageReloadCount") || "0");
+      const reloadCount = Number(
+        sessionStorage.getItem("deptPageReloadCount") || "0"
+      );
       if (reloadCount < 2) {
         sessionStorage.setItem("deptPageReloadCount", String(reloadCount + 1));
         window.location.replace(`/departments?cb=${Date.now()}`);
@@ -159,18 +170,28 @@ export default function DepartmentsPage() {
       result = result.filter(
         (d) =>
           d.Department_Name.toLowerCase().includes(searchLower) ||
-          (d.Department_Code && d.Department_Code.toLowerCase().includes(searchLower))
+          (d.Department_Code &&
+            d.Department_Code.toLowerCase().includes(searchLower))
       );
     }
 
     // Filter by establishment year
     if (establishmentYearFilter && establishmentYearFilter !== "all") {
       if (establishmentYearFilter === "before-2000") {
-        result = result.filter((d) => d.Establishment_Year && d.Establishment_Year < 2000);
+        result = result.filter(
+          (d) => d.Establishment_Year && d.Establishment_Year < 2000
+        );
       } else if (establishmentYearFilter === "2000-2010") {
-        result = result.filter((d) => d.Establishment_Year && d.Establishment_Year >= 2000 && d.Establishment_Year <= 2010);
+        result = result.filter(
+          (d) =>
+            d.Establishment_Year &&
+            d.Establishment_Year >= 2000 &&
+            d.Establishment_Year <= 2010
+        );
       } else if (establishmentYearFilter === "after-2010") {
-        result = result.filter((d) => d.Establishment_Year && d.Establishment_Year > 2010);
+        result = result.filter(
+          (d) => d.Establishment_Year && d.Establishment_Year > 2010
+        );
       }
     }
 
@@ -218,7 +239,8 @@ export default function DepartmentsPage() {
     (establishmentYearFilter !== "" && establishmentYearFilter !== "all");
 
   // Check if user has permission to add/edit departments
-  const canManageDepartments = userRole === "admin" || (user && user.role === "admin");
+  const canManageDepartments =
+    userRole === "admin" || (user && user.role === "admin");
 
   if (loading || !user) {
     return (
@@ -246,7 +268,9 @@ export default function DepartmentsPage() {
         <div className="flex justify-center items-center min-h-[300px]">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-            <p className="mt-4">You do not have permission to view the department directory.</p>
+            <p className="mt-4">
+              You do not have permission to view the department directory.
+            </p>
           </div>
         </div>
       </MainLayout>
@@ -302,7 +326,9 @@ export default function DepartmentsPage() {
                   <h4 className="font-medium">Filter by</h4>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Establishment Year</label>
+                    <label className="text-sm font-medium">
+                      Establishment Year
+                    </label>
                     <Select
                       value={establishmentYearFilter}
                       onValueChange={setEstablishmentYearFilter}
@@ -323,17 +349,18 @@ export default function DepartmentsPage() {
             </Popover>
 
             {/* Sort by dropdown */}
-            <Select
-              value={sortOrder}
-              onValueChange={setSortOrder}
-            >
+            <Select value={sortOrder} onValueChange={setSortOrder}>
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Sort by Name</SelectItem>
-                <SelectItem value="establishment-asc">Establishment Year (Oldest First)</SelectItem>
-                <SelectItem value="establishment-desc">Establishment Year (Newest First)</SelectItem>
+                <SelectItem value="establishment-asc">
+                  Establishment Year (Oldest First)
+                </SelectItem>
+                <SelectItem value="establishment-desc">
+                  Establishment Year (Newest First)
+                </SelectItem>
                 <SelectItem value="faculty-count">Faculty Count</SelectItem>
                 <SelectItem value="student-count">Student Count</SelectItem>
               </SelectContent>
@@ -415,9 +442,7 @@ export default function DepartmentsPage() {
             </div>
           ) : visibleDepartments.length === 0 ? (
             <div className="text-center py-12 border rounded-md">
-              <p className="text-gray-500 font-medium">
-                No departments found
-              </p>
+              <p className="text-gray-500 font-medium">No departments found</p>
               <p className="text-gray-400 text-sm mt-1">
                 Try adjusting your filters
               </p>
@@ -436,7 +461,8 @@ export default function DepartmentsPage() {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-gray-500">
-                  Showing {visibleDepartments.length} of {departments.length} departments
+                  Showing {visibleDepartments.length} of {departments.length}{" "}
+                  departments
                 </p>
               </div>
 
@@ -447,10 +473,11 @@ export default function DepartmentsPage() {
                     department={department}
                     showEditButton={
                       !!(
-                        user && (
-                          (user.role as any) === "admin" ||
-                          ((user.role as any) === "department" && department.Department_ID === user.departmentId)
-                        )
+                        user &&
+                        ((user.role as any) === "admin" ||
+                          (((user.role as any) === "hod" ||
+                            (user.role as any) === "department") &&
+                            department.Department_ID === user.departmentId))
                       )
                     }
                   />
@@ -469,7 +496,10 @@ interface DepartmentCardProps {
   showEditButton?: boolean;
 }
 
-function DepartmentCard({ department, showEditButton = false }: DepartmentCardProps) {
+function DepartmentCard({
+  department,
+  showEditButton = false,
+}: DepartmentCardProps) {
   const router = useRouter();
   const departmentStyle = getDepartmentStyle(department.Department_Name);
 
@@ -478,8 +508,8 @@ function DepartmentCard({ department, showEditButton = false }: DepartmentCardPr
   };
 
   return (
-    <Card 
-      className="overflow-hidden cursor-pointer transition-all hover:shadow-md" 
+    <Card
+      className="overflow-hidden cursor-pointer transition-all hover:shadow-md"
       onClick={handleClick}
     >
       <div
@@ -520,30 +550,41 @@ function DepartmentCard({ department, showEditButton = false }: DepartmentCardPr
           {department.Email_ID && (
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-gray-500">Email:</span>
-              <span className="text-gray-700 truncate">{department.Email_ID}</span>
+              <span className="text-gray-700 truncate">
+                {department.Email_ID}
+              </span>
             </div>
           )}
           {department.Department_Phone_Number && (
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-gray-500">Phone:</span>
-              <span className="text-gray-700">{department.Department_Phone_Number}</span>
+              <span className="text-gray-700">
+                {department.Department_Phone_Number}
+              </span>
             </div>
           )}
         </div>
 
         <div className="flex justify-between pt-2 border-t border-gray-100 text-xs">
           <div className="text-blue-600">
-            <span className="font-semibold">{department.Total_Faculty || 0}</span>{" "}
+            <span className="font-semibold">
+              {department.Total_Faculty || 0}
+            </span>{" "}
             faculty members
           </div>
           <div className="text-purple-600">
-            <span className="font-semibold">{department.Total_Students || 0}</span>{" "}
+            <span className="font-semibold">
+              {department.Total_Students || 0}
+            </span>{" "}
             student
           </div>
         </div>
 
         {showEditButton && (
-          <div className="pt-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="pt-2 flex justify-end"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Link href={`/departments/edit/${department.Department_ID}`}>
               <Button size="sm" variant="outline" className="text-xs">
                 Edit Department
@@ -554,4 +595,4 @@ function DepartmentCard({ department, showEditButton = false }: DepartmentCardPr
       </div>
     </Card>
   );
-} 
+}

@@ -10,7 +10,7 @@ export const departments = [
     name: "Computer Engineering",
     abbreviation: "CE",
     code: "CE-101",
-    facultyIdPrefix: 100,
+    facultyIdPrefix: 1,
     studentIdPrefix: 10000,
   },
   {
@@ -18,7 +18,7 @@ export const departments = [
     name: "Mechanical Engineering",
     abbreviation: "ME",
     code: "ME-102",
-    facultyIdPrefix: 200,
+    facultyIdPrefix: 2,
     studentIdPrefix: 20000,
   },
   {
@@ -26,7 +26,7 @@ export const departments = [
     name: "Electronics and Telecommunication Engineering",
     abbreviation: "ExTC",
     code: "ExTC-103",
-    facultyIdPrefix: 300,
+    facultyIdPrefix: 3,
     studentIdPrefix: 30000,
   },
   {
@@ -34,7 +34,7 @@ export const departments = [
     name: "Electrical Engineering",
     abbreviation: "EE",
     code: "EE-104",
-    facultyIdPrefix: 400,
+    facultyIdPrefix: 4,
     studentIdPrefix: 40000,
   },
   {
@@ -42,7 +42,7 @@ export const departments = [
     name: "Information Technology",
     abbreviation: "IT",
     code: "IT-105",
-    facultyIdPrefix: 500,
+    facultyIdPrefix: 5,
     studentIdPrefix: 50000,
   },
 ];
