@@ -593,7 +593,7 @@ async function generateFacultyReport(
   }
 
   // Add ORDER BY clause with hierarchical sorting
-  // First priority - HOD status (using departments.HOD_ID), then designation, then date of joining
+  // First priority - HOD status (using department.HOD_ID), then designation, then date of joining
   facultyQuery += ` ORDER BY 
     CASE 
       WHEN f.F_id = (
@@ -774,7 +774,7 @@ async function generateStudentsReport(
   let departmentName = "All Departments";
   if (departmentId && departmentId !== "all") {
     try {
-      const deptQuery = `SELECT Department_Name FROM department WHERE Department_ID = ?`;
+      const deptQuery = `SELECT Department_Name FROM departments WHERE Department_ID = ?`;
       const deptResult = (await query(deptQuery, [
         parseInt(departmentId, 10),
       ])) as RowDataPacket[];
@@ -1058,7 +1058,7 @@ async function generateResearchReport(
   let departmentName = "All Departments";
   if (departmentId && departmentId !== "all") {
     try {
-      const deptQuery = `SELECT Department_Name FROM department WHERE Department_ID = ?`;
+      const deptQuery = `SELECT Department_Name FROM departments WHERE Department_ID = ?`;
       const deptResult = (await query(deptQuery, [
         parseInt(departmentId, 10),
       ])) as RowDataPacket[];
@@ -1395,7 +1395,7 @@ async function generateFullReport(
   let departmentName = "All Departments";
   if (departmentId && departmentId !== "all") {
     try {
-      const deptQuery = `SELECT Department_Name FROM department WHERE Department_ID = ?`;
+      const deptQuery = `SELECT Department_Name FROM departments WHERE Department_ID = ?`;
       const deptResult = (await query(deptQuery, [
         parseInt(departmentId, 10),
       ])) as RowDataPacket[];

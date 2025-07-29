@@ -10,7 +10,7 @@ export async function GET() {
         u.id, u.username, u.email, u.role, u.is_active, 
         u.created_at, u.last_login, d.Department_Name as department
       FROM users u
-      LEFT JOIN departments d ON u.department_id = d.id
+      LEFT JOIN department d ON u.department_id = d.Department_ID
       ORDER BY u.created_at DESC
     `);
 

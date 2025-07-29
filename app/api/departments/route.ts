@@ -5,154 +5,60 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth-options";
 
 export async function GET(request: NextRequest) {
-  const diagnosticMode = request.url.includes("diagnostic=true");
-  const diagnosticInfo: Record<string, any> = {};
-
-  // Get user info
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-  console.log("[DEPT API] Session user:", user);
-
   try {
+    // Get user info
+    const session = await getServerSession(authOptions);
+    const user = session?.user;
+    console.log("[DEPT API] Session user:", user);
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    // Step 1: Verify department table exists
+    // First check if department table exists
     try {
       const tableCheck = await query("SHOW TABLES LIKE 'department'");
-      diagnosticInfo.tableCheck = { department: (tableCheck as any[]).length > 0 };
+      console.log("[DEPT API] Table check result:", tableCheck);
       
       if ((tableCheck as any[]).length === 0) {
-        throw new Error("Department table does not exist");
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Department table does not exist",
+            error: "Table 'department' not found"
+          },
+          { status: 500 }
+        );
       }
-    } catch (error) {
-      console.error("Department table check error:", error);
+    } catch (tableError) {
+      console.error("[DEPT API] Table check error:", tableError);
       return NextResponse.json(
         {
           success: false,
-          message: "Department table not found or inaccessible",
-          error: error instanceof Error ? error.message : "Unknown error",
-          diagnostic: diagnosticInfo
+          message: "Error checking department table",
+          error: tableError instanceof Error ? tableError.message : "Unknown table error"
         },
         { status: 500 }
       );
     }
-    
-    // Step 2: Build the query with proper error handling for joins
+
+    // Query to get department data with details
     let sql = `
       SELECT 
         d.Department_ID,
-        d.Department_Name
+        d.Department_Name,
+        dd.Establishment_Year,
+        dd.Department_Code,
+        dd.Email_ID,
+        dd.Department_Phone_Number,
+        dd.HOD_ID,
+        dd.Total_Faculty,
+        dd.Total_Students,
+        dd.Vision,
+        dd.Mission,
+        dd.Website_URL
+      FROM department d
+      LEFT JOIN department_details dd ON d.Department_ID = dd.Department_ID
     `;
-    
-    // Check if department_details table exists before adding its columns
-    let hasDetailsTable = false;
-    try {
-      const detailsCheck = await query("SHOW TABLES LIKE 'department_details'");
-      hasDetailsTable = (detailsCheck as any[]).length > 0;
-      
-      diagnosticInfo.tableCheck = { 
-        ...diagnosticInfo.tableCheck,
-        department_details: hasDetailsTable 
-      };
-      
-      if (hasDetailsTable) {
-        // Get the actual column names to avoid errors
-        const detailsColumns = await query("SHOW COLUMNS FROM department_details");
-        const columnNames = (detailsColumns as any[]).map(col => col.Field);
-        
-        // Only include columns that actually exist
-        const establishmentYearCol = columnNames.includes('Establishment_Year') ? 'dd.Establishment_Year' : 'NULL as Establishment_Year';
-        const departmentCodeCol = columnNames.includes('Department_Code') ? 'dd.Department_Code' : 'NULL as Department_Code';
-        const emailCol = columnNames.includes('Email_ID') ? 'dd.Email_ID' : 'NULL as Email_ID';
-        const phoneCol = columnNames.includes('Department_Phone_Number') ? 'dd.Department_Phone_Number' : 'NULL as Department_Phone_Number';
-        const hodIdCol = columnNames.includes('HOD_ID') ? 'dd.HOD_ID' : 'NULL as HOD_ID';
-        const totalFacultyCol = columnNames.includes('Total_Faculty') ? 'dd.Total_Faculty' : 'NULL as Total_Faculty';
-        const totalStudentsCol = columnNames.includes('Total_Students') ? 'dd.Total_Students' : 'NULL as Total_Students';
-        const visionCol = columnNames.includes('Vision') ? 'dd.Vision' : 'NULL as Vision';
-        const missionCol = columnNames.includes('Mission') ? 'dd.Mission' : 'NULL as Mission';
-        const websiteUrlCol = columnNames.includes('Website_URL') ? 'dd.Website_URL' : 'NULL as Website_URL';
-        const notableAchievementsCol = columnNames.includes('Notable_Achievements') ? 'dd.Notable_Achievements' : 'NULL as Notable_Achievements';
-        const industryCollaborationCol = columnNames.includes('Industry_Collaboration') ? 'dd.Industry_Collaboration' : 'NULL as Industry_Collaboration';
-        const researchFocusAreaCol = columnNames.includes('Research_Focus_Area') ? 'dd.Research_Focus_Area' : 'NULL as Research_Focus_Area';
-        
-        sql += `,
-          ${establishmentYearCol},
-          ${departmentCodeCol},
-          ${emailCol},
-          ${phoneCol},
-          ${hodIdCol},
-          ${totalFacultyCol},
-          ${totalStudentsCol},
-          ${visionCol},
-          ${missionCol},
-          ${websiteUrlCol},
-          ${notableAchievementsCol},
-          ${industryCollaborationCol},
-          ${researchFocusAreaCol}`;
-      } else {
-        // Add placeholder columns if table doesn't exist
-        sql += `,
-          NULL as Establishment_Year,
-          NULL as Department_Code,
-          NULL as Email_ID,
-          NULL as Department_Phone_Number,
-          NULL as HOD_ID,
-          NULL as Total_Faculty,
-          NULL as Total_Students,
-          NULL as Vision,
-          NULL as Mission,
-          NULL as Website_URL,
-          NULL as Notable_Achievements,
-          NULL as Industry_Collaboration,
-          NULL as Research_Focus_Area`;
-      }
-    } catch (error) {
-      console.error("Department details check error:", error);
-      // Continue with placeholders for these columns
-      sql += `,
-        NULL as Establishment_Year,
-        NULL as Department_Code,
-        NULL as Email_ID,
-        NULL as Department_Phone_Number,
-        NULL as HOD_ID,
-        NULL as Total_Faculty,
-        NULL as Total_Students,
-        NULL as Vision,
-        NULL as Mission,
-        NULL as Website_URL,
-        NULL as Notable_Achievements,
-        NULL as Industry_Collaboration,
-        NULL as Research_Focus_Area`;
-    }
-    
-    // Main table
-    sql += ` FROM department d`;
-    
-    // Add LEFT JOINs conditionally
-    let hasDetailsJoin = false;
-    try {
-      const detailsCheck = await query("SHOW TABLES LIKE 'department_details'");
-      if ((detailsCheck as any[]).length > 0) {
-        sql += ` LEFT JOIN department_details dd ON d.Department_ID = dd.Department_ID`;
-        hasDetailsJoin = true;
-      }
-    } catch (error) {
-      console.error("Error checking department_details for JOIN:", error);
-      // Skip the join if there's an error
-    }
-    
-    // Add faculty HOD join conditionally to get HOD name
-    let hasHodJoin = false;
-    sql += ` LEFT JOIN faculty f ON `;
-    
-    if (hasDetailsJoin) {
-      sql += `dd.HOD_ID = f.F_id`;
-      hasHodJoin = true;
-    } else {
-      sql += `1=0`; // This will never match but prevents SQL errors
-    }
-
     const params: (string | number | boolean | null)[] = [];
     const conditions = [];
 
@@ -162,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Restrict department users to only their own department
-    if (user && user.role === "department" && user.departmentId) {
+    if (user && (user.role as any) === "department" && user.departmentId) {
       conditions.push("d.Department_ID = ?");
       params.push(user.departmentId);
     }
@@ -171,47 +77,29 @@ export async function GET(request: NextRequest) {
       sql += " WHERE " + conditions.join(" AND ");
     }
 
-    // Ensure the GROUP BY only includes columns that exist in the query
-    sql += " GROUP BY d.Department_ID, d.Department_Name";
-    
-    // Add additional GROUP BY columns if we know they exist
-    if (hasDetailsJoin) {
-      sql += ", dd.Establishment_Year, dd.Department_Code, dd.Email_ID, dd.Department_Phone_Number, dd.HOD_ID, dd.Total_Faculty, dd.Total_Students, dd.Vision, dd.Mission, dd.Website_URL, dd.Notable_Achievements, dd.Industry_Collaboration, dd.Research_Focus_Area";
-    }
+    sql += " ORDER BY d.Department_Name";
 
-    // Execute the query
-    diagnosticInfo.sql = sql;
-    diagnosticInfo.params = params;
+    console.log("[DEPT API] SQL:", sql);
+    console.log("[DEPT API] Params:", params);
 
     const departments = await query(sql, params);
-    diagnosticInfo.querySuccess = true;
-    diagnosticInfo.resultCount = (departments as any[]).length;
-    
-    // Add HOD names to the result if available
-    const result = await Promise.all((departments as any[]).map(async dept => {
-      // Try to get faculty information for HOD if it exists
+    console.log("[DEPT API] Result count:", (departments as any[]).length);
+
+    // Add HOD information to each department
+    const departmentsWithHOD = await Promise.all((departments as any[]).map(async (dept) => {
       let hodInfo = null;
       if (dept.HOD_ID) {
         try {
-          const facultyQuery = await query("SELECT F_id, F_name FROM faculty WHERE F_id = ?", [dept.HOD_ID]);
-          if ((facultyQuery as any[]).length > 0) {
-            const faculty = (facultyQuery as any[])[0];
+          const hodQuery = await query("SELECT F_id, F_name FROM faculty WHERE F_id = ?", [dept.HOD_ID]);
+          if ((hodQuery as any[]).length > 0) {
+            const hod = (hodQuery as any[])[0];
             hodInfo = {
-              id: faculty.F_id,
-              name: faculty.F_name
-            };
-          } else {
-            hodInfo = {
-              id: dept.HOD_ID,
-              name: "Unknown Faculty"
+              id: hod.F_id,
+              name: hod.F_name
             };
           }
         } catch (error) {
-          console.error("Error processing HOD information:", error);
-          hodInfo = {
-            id: dept.HOD_ID,
-            name: "Unknown Faculty"
-          };
+          console.error("Error fetching HOD info:", error);
         }
       }
       
@@ -223,8 +111,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result,
-      diagnostic: diagnosticMode ? diagnosticInfo : undefined
+      data: departmentsWithHOD
     });
   } catch (error) {
     console.error("Error fetching departments:", error);
@@ -232,8 +119,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         message: "Error fetching department data",
-        error: error instanceof Error ? error.message : "Unknown error",
-        diagnostic: diagnosticInfo
+        error: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );
